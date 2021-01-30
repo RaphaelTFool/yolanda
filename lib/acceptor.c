@@ -5,6 +5,9 @@ struct acceptor *acceptor_init(int port) {
     struct acceptor *acceptor1 = malloc(sizeof(struct acceptor));
     acceptor1->listen_port = port;
     acceptor1->listen_fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (acceptor1->listen_fd < 0) {
+        error(1, errno, "socket error ");
+    }
 
     make_nonblocking(acceptor1->listen_fd);
 
@@ -15,7 +18,9 @@ struct acceptor *acceptor_init(int port) {
     server_addr.sin_port = htons(port);
 
     int on = 1;
-    setsockopt(acceptor1->listen_fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
+    if (setsockopt(acceptor1->listen_fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0) {
+        error(1, errno, "setsockopt failed ");
+    }
 
     int rt1 = bind(acceptor1->listen_fd, (struct sockaddr *) &server_addr, sizeof(server_addr));
     if (rt1 < 0) {

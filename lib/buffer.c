@@ -9,6 +9,9 @@ struct buffer *buffer_new() {
         return NULL;
 
     buffer1->data = malloc(INIT_BUFFER_SIZE);
+    if (!buffer1->data) {
+        error(1, errno, "malloc failed ");
+    }
     buffer1->total_size = INIT_BUFFER_SIZE;
     buffer1->readIndex = 0;
     buffer1->writeIndex = 0;

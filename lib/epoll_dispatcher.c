@@ -38,6 +38,9 @@ const struct event_dispatcher epoll_dispatcher = {
 
 void *epoll_init(struct event_loop *eventLoop) {
     epoll_dispatcher_data *epollDispatcherData = malloc(sizeof(epoll_dispatcher_data));
+    if (!epollDispatcherData) {
+        error(1, errno, "malloc failed");
+    }
 
     epollDispatcherData->event_count = 0;
     epollDispatcherData->nfds = 0;
@@ -50,6 +53,9 @@ void *epoll_init(struct event_loop *eventLoop) {
     }
 
     epollDispatcherData->events = calloc(MAXEVENTS, sizeof(struct epoll_event));
+    if (!epollDispatcherData->events) {
+        error(1, errno, "calloc failed");
+    }
 
     return epollDispatcherData;
 }
@@ -131,8 +137,15 @@ int epoll_update(struct event_loop *eventLoop, struct channel *channel1) {
 int epoll_dispatch(struct event_loop *eventLoop, struct timeval *timeval) {
     epoll_dispatcher_data *epollDispatcherData = (epoll_dispatcher_data *) eventLoop->event_dispatcher_data;
     int i, n;
+    int timeout;
 
-    n = epoll_wait(epollDispatcherData->efd, epollDispatcherData->events, MAXEVENTS, -1);
+    if (!timeval) {
+        timeout = -1;
+    } else {
+        timeout = timeval->tv_sec;
+    }
+
+    n = epoll_wait(epollDispatcherData->efd, epollDispatcherData->events, MAXEVENTS, timeout);
     yolanda_msgx("epoll_wait wakeup, %s", eventLoop->thread_name);
     for (i = 0; i < n; i++) {
         if ((epollDispatcherData->events[i].events & EPOLLERR) || (epollDispatcherData->events[i].events & EPOLLHUP)) {

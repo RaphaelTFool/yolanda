@@ -8,6 +8,9 @@
 int tcp_server(int port) {
     int listenfd;
     listenfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (listenfd < 0) {
+        error(1, errno, "socket error ");
+    }
 
     struct sockaddr_in server_addr;
     bzero(&server_addr, sizeof(server_addr));
@@ -16,7 +19,9 @@ int tcp_server(int port) {
     server_addr.sin_port = htons(port);
 
     int on = 1;
-    setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
+    if (setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0) {
+        error(1, errno, "setsockopt failed ");
+    }
 
     int rt1 = bind(listenfd, (struct sockaddr *) &server_addr, sizeof(server_addr));
     if (rt1 < 0) {
@@ -45,6 +50,9 @@ int tcp_server(int port) {
 int tcp_server_listen(int port) {
     int listenfd;
     listenfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (listenfd < 0) {
+        error(1, errno, "socket error ");
+    }
 
     struct sockaddr_in server_addr;
     bzero(&server_addr, sizeof(server_addr));
@@ -53,7 +61,9 @@ int tcp_server_listen(int port) {
     server_addr.sin_port = htons(port);
 
     int on = 1;
-    setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
+    if (setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0) {
+        error(1, errno, "setsockopt failed ");
+    }
 
     int rt1 = bind(listenfd, (struct sockaddr *) &server_addr, sizeof(server_addr));
     if (rt1 < 0) {
@@ -74,6 +84,9 @@ int tcp_server_listen(int port) {
 int tcp_nonblocking_server_listen(int port) {
     int listenfd;
     listenfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (listenfd < 0) {
+        error(1, errno, "socket error ");
+    }
 
     make_nonblocking(listenfd);
 
@@ -84,7 +97,9 @@ int tcp_nonblocking_server_listen(int port) {
     server_addr.sin_port = htons(port);
 
     int on = 1;
-    setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
+    if (setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0) {
+        error(1, errno, "setsockopt failed ");
+    }
 
     int rt1 = bind(listenfd, (struct sockaddr *) &server_addr, sizeof(server_addr));
     if (rt1 < 0) {
@@ -102,7 +117,9 @@ int tcp_nonblocking_server_listen(int port) {
 }
 
 void make_nonblocking(int fd) {
-    fcntl(fd, F_SETFL, O_NONBLOCK);
+    if (fcntl(fd, F_SETFL, O_NONBLOCK) < 0) {
+        error(1, errno, "fcntl error ");
+    }
 }
 
 
@@ -114,6 +131,9 @@ tcp_server_init(struct event_loop *eventLoop, struct acceptor *acceptor,
                 connection_closed_call_back connectionClosedCallBack,
                 int threadNum) {
     struct TCPserver *tcpServer = malloc(sizeof(struct TCPserver));
+    if (!tcpServer) {
+        error(1, errno, "malloc failed ");
+    }
     tcpServer->eventLoop = eventLoop;
     tcpServer->acceptor = acceptor;
     tcpServer->connectionCompletedCallBack = connectionCompletedCallBack;
@@ -136,6 +156,9 @@ int handle_connection_established(void *data) {
     struct sockaddr_in client_addr;
     socklen_t client_len = sizeof(client_addr);
     int connected_fd = accept(listenfd, (struct sockaddr *) &client_addr, &client_len);
+    if (connected_fd < 0) {
+        error(0, errno, "accept failed");
+    }
     make_nonblocking(connected_fd);
 
     yolanda_msgx("new connection established, socket == %d", connected_fd);
@@ -159,6 +182,7 @@ int handle_connection_established(void *data) {
 
 //开启监听
 void tcp_server_start(struct TCPserver *tcpServer) {
+    assert(tcpServer != NULL);
     struct acceptor *acceptor = tcpServer->acceptor;
     struct event_loop *eventLoop = tcpServer->eventLoop;
 

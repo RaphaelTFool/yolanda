@@ -3,6 +3,9 @@
 int tcp_client(char *address, int port) {
     int socket_fd;
     socket_fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (socket_fd < 0) {
+        error(1, errno, "socket error");
+    }
 
     struct sockaddr_in server_addr;
     bzero(&server_addr, sizeof(server_addr));

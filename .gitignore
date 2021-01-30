@@ -8,3 +8,6 @@ CMakeFiles/*
 Makefile
 cmake_install.cmake
 .vscode/*
+GTAGS
+GRTAGS
+GPATH

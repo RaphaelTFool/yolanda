@@ -17,12 +17,19 @@ int event_loop_handle_pending_channel(struct event_loop *eventLoop) {
         //save into event_map
         struct channel *channel = channelElement->channel;
         int fd = channel->fd;
-        if (channelElement->type == 1) {
-            event_loop_handle_pending_add(eventLoop, fd, channel);
-        } else if (channelElement->type == 2) {
-            event_loop_handle_pending_remove(eventLoop, fd, channel);
-        } else if (channelElement->type == 3) {
-            event_loop_handle_pending_update(eventLoop, fd, channel);
+        switch (channelElement->type) {
+            case CHN_TYPE_ADD:
+                event_loop_handle_pending_add(eventLoop, fd, channel);
+            break;
+            case CHN_TYPE_DEL:
+                event_loop_handle_pending_remove(eventLoop, fd, channel);
+            break;
+            case CHN_TYPE_UPDATE:
+                event_loop_handle_pending_update(eventLoop, fd, channel);
+            break;
+            default:
+                LOG_ERR("unsupported type");
+            break;
         }
         channelElement = channelElement->next;
     }
@@ -36,9 +43,13 @@ int event_loop_handle_pending_channel(struct event_loop *eventLoop) {
     return 0;
 }
 
+//nolock函数的目的就是提示使用在锁的上下文中 
 void event_loop_channel_buffer_nolock(struct event_loop *eventLoop, int fd, struct channel *channel1, int type) {
     //add channel into the pending list
     struct channel_element *channelElement = malloc(sizeof(struct channel_element));
+    if (!channelElement) {
+        error(1, errno, "malloc failed");
+    }
     channelElement->channel = channel1;
     channelElement->type = type;
     channelElement->next = NULL;
@@ -69,15 +80,15 @@ int event_loop_do_channel_event(struct event_loop *eventLoop, int fd, struct cha
 }
 
 int event_loop_add_channel_event(struct event_loop *eventLoop, int fd, struct channel *channel1) {
-    return event_loop_do_channel_event(eventLoop, fd, channel1, 1);
+    return event_loop_do_channel_event(eventLoop, fd, channel1, CHN_TYPE_ADD);
 }
 
 int event_loop_remove_channel_event(struct event_loop *eventLoop, int fd, struct channel *channel1) {
-    return event_loop_do_channel_event(eventLoop, fd, channel1, 2);
+    return event_loop_do_channel_event(eventLoop, fd, channel1, CHN_TYPE_DEL);
 }
 
 int event_loop_update_channel_event(struct event_loop *eventLoop, int fd, struct channel *channel1) {
-    return event_loop_do_channel_event(eventLoop, fd, channel1, 3);
+    return event_loop_do_channel_event(eventLoop, fd, channel1, CHN_TYPE_UPDATE);
 }
 
 // in the i/o thread
@@ -94,6 +105,7 @@ int event_loop_handle_pending_add(struct event_loop *eventLoop, int fd, struct c
     }
 
     //第一次创建，增加
+    //TODO: 硬核哈希表，直接用fd值做key，非常浪费空间
     if ((map)->entries[fd] == NULL) {
         map->entries[fd] = channel;
         //add channel
@@ -174,8 +186,8 @@ int channel_event_activate(struct event_loop *eventLoop, int fd, int revents) {
 
 void event_loop_wakeup(struct event_loop *eventLoop) {
     char one = 'a';
-    ssize_t n = write(eventLoop->socketPair[0], &one, sizeof one);
-    if (n != sizeof one) {
+    ssize_t n = write(eventLoop->socketPair[0], &one, sizeof(one));
+    if (n != sizeof(one)) {
         LOG_ERR("wakeup event loop thread failed");
     }
 }
@@ -183,8 +195,8 @@ void event_loop_wakeup(struct event_loop *eventLoop) {
 int handleWakeup(void *data) {
     struct event_loop *eventLoop = (struct event_loop *) data;
     char one;
-    ssize_t n = read(eventLoop->socketPair[1], &one, sizeof one);
-    if (n != sizeof one) {
+    ssize_t n = read(eventLoop->socketPair[1], &one, sizeof(one));
+    if (n != sizeof(one)) {
         LOG_ERR("handleWakeup  failed");
     }
     yolanda_msgx("wakeup, %s", eventLoop->thread_name);
@@ -196,6 +208,9 @@ struct event_loop *event_loop_init() {
 
 struct event_loop *event_loop_init_with_name(char *thread_name) {
     struct event_loop *eventLoop = malloc(sizeof(struct event_loop));
+    if (!eventLoop) {
+        error(1, errno, "malloc failed");
+    }
     pthread_mutex_init(&eventLoop->mutex, NULL);
     pthread_cond_init(&eventLoop->cond, NULL);
 
@@ -207,6 +222,9 @@ struct event_loop *event_loop_init_with_name(char *thread_name) {
 
     eventLoop->quit = 0;
     eventLoop->channelMap = malloc(sizeof(struct channel_map));
+    if (!eventLoop->channelMap) {
+        error(1, errno, "malloc failed");
+    }
     map_init(eventLoop->channelMap);
 
 #ifdef EPOLL_ENABLE

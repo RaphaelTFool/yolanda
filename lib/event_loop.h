@@ -9,6 +9,14 @@
 extern const struct event_dispatcher poll_dispatcher;
 extern const struct event_dispatcher epoll_dispatcher;
 
+enum channel_type{
+    CHN_TYPE_BEGIN = 0,
+    CHN_TYPE_ADD,
+    CHN_TYPE_DEL,
+    CHN_TYPE_UPDATE,
+    CHN_TYPE_END
+};
+
 struct channel_element {
     int type; //1: add  2: delete
     struct channel *channel;
