@@ -137,6 +137,7 @@ int epoll_update(struct event_loop *eventLoop, struct channel *channel1) {
 int epoll_dispatch(struct event_loop *eventLoop, struct timeval *timeval) {
     epoll_dispatcher_data *epollDispatcherData = (epoll_dispatcher_data *) eventLoop->event_dispatcher_data;
     int i, n;
+#if 0
     int timeout;
 
     if (!timeval) {
@@ -146,6 +147,10 @@ int epoll_dispatch(struct event_loop *eventLoop, struct timeval *timeval) {
     }
 
     n = epoll_wait(epollDispatcherData->efd, epollDispatcherData->events, MAXEVENTS, timeout);
+#else
+    //epoll不用特意设置超时
+    n = epoll_wait(epollDispatcherData->efd, epollDispatcherData->events, MAXEVENTS, -1);
+#endif
     yolanda_msgx("epoll_wait wakeup, %s", eventLoop->thread_name);
     for (i = 0; i < n; i++) {
         if ((epollDispatcherData->events[i].events & EPOLLERR) || (epollDispatcherData->events[i].events & EPOLLHUP)) {

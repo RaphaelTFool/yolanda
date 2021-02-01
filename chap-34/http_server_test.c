@@ -1,3 +1,4 @@
+#include <string.h>
 #include "lib/http_request.h"
 #include "lib/http_server.h"
 #include "lib/http_response.h"

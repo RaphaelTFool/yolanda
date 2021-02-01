@@ -3,6 +3,9 @@
 
 struct acceptor *acceptor_init(int port) {
     struct acceptor *acceptor1 = malloc(sizeof(struct acceptor));
+    if (!acceptor1) {
+        error(1, error, "malloc failed");
+    }
     acceptor1->listen_port = port;
     acceptor1->listen_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (acceptor1->listen_fd < 0) {

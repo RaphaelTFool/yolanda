@@ -185,7 +185,12 @@ int channel_event_activate(struct event_loop *eventLoop, int fd, int revents) {
 }
 
 void event_loop_wakeup(struct event_loop *eventLoop) {
-    char one = 'a';
+    static char one = 'a';
+    if (one == 'z') {
+        one = 'a';
+    } else {
+        one++;
+    }
     ssize_t n = write(eventLoop->socketPair[0], &one, sizeof(one));
     if (n != sizeof(one)) {
         LOG_ERR("wakeup event loop thread failed");
@@ -199,7 +204,7 @@ int handleWakeup(void *data) {
     if (n != sizeof(one)) {
         LOG_ERR("handleWakeup  failed");
     }
-    yolanda_msgx("wakeup, %s", eventLoop->thread_name);
+    yolanda_msgx("wakeup, %s, receive %c", eventLoop->thread_name, one);
 }
 
 struct event_loop *event_loop_init() {

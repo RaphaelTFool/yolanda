@@ -43,9 +43,10 @@ else ()
             )
 endif ()
 
+add_definitions(-std=c99 -D_GNU_SOURCE)
 
 add_library(yolanda ${yolanda_lib})
-target_link_libraries(yolanda pthread)
+target_link_libraries(yolanda rt pthread)
 
 install(TARGETS yolanda DESTINATION lib)
 
