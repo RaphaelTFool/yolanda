@@ -112,3 +112,11 @@ char *buffer_find_CRLF(struct buffer *buffer) {
     char *crlf = memmem(buffer->data + buffer->readIndex, buffer_readable_size(buffer), CRLF, 2);
     return crlf;
 }
+
+char *buffer_content_get(struct buffer* buffer) {
+    return buffer->data + buffer->readIndex;
+}
+
+void buffer_readn(struct buffer *buffer, int n) {
+    buffer->readIndex += n;
+}

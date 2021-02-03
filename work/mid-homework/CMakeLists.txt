@@ -1,4 +1,6 @@
-add_executable(server server.c)
+add_executable(server server.c myutil.c)
 target_link_libraries(server yolanda)
+add_executable(server-epoll server-epoll.c myutil.c)
+target_link_libraries(server-epoll yolanda)
 add_executable(client client.c)
 target_link_libraries(client yolanda)

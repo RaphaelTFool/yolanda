@@ -46,6 +46,8 @@ int main(int argc, char **argv) {
                 }
             }
             int len = strlen(sendbuf);
+            //printf("string: %s, len = %d\n", sendbuf, len);
+            //TODO: 换行的处理存在一定问题
             if (sendbuf[len - 1] == '\n') {
                 sendbuf[len - 1] = 0;
                 len--;

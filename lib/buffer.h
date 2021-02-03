@@ -39,4 +39,6 @@ char buffer_read_char(struct buffer *buffer);
 //查询buffer数据
 char * buffer_find_CRLF(struct buffer * buffer);
 
+void buffer_readn(struct buffer *buffer, int n);
+
 #endif
