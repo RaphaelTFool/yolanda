@@ -66,6 +66,7 @@ int event_loop_do_channel_event(struct event_loop *eventLoop, int fd, struct cha
     //get the lock
     pthread_mutex_lock(&eventLoop->mutex);
     assert(eventLoop->is_handle_pending == 0);
+    //事件挂队列，同线程直接处理，异线程唤醒主线程来处理
     event_loop_channel_buffer_nolock(eventLoop, fd, channel1, type);
     //release the lock
     pthread_mutex_unlock(&eventLoop->mutex);

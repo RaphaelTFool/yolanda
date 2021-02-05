@@ -162,6 +162,9 @@ int handle_connection_established(void *data) {
     make_nonblocking(connected_fd);
 
     yolanda_msgx("new connection established, socket == %d", connected_fd);
+    char ip[INET6_ADDRSTRLEN];
+    inet_ntop(AF_INET, &client_addr.sin_addr, ip, client_len);
+    yolanda_msgx("client: [%s:%d]", ip, ntohs(client_addr.sin_port));
 
     // choose event loop from the thread pool
     struct event_loop *eventLoop = thread_pool_get_loop(tcpServer->threadPool);

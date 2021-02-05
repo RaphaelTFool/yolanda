@@ -5,6 +5,7 @@
 
 #define BUF_SIZE 4096
 
+void rand_str(char *dest, int length);
 void trim_space(char *orig);
 void ls(char *buf, int len);
 int tcp_send(int fd, char *buf, int len);

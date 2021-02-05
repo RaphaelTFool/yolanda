@@ -4,6 +4,20 @@
 
 #include "lib/common.h"
 
+#define FILE_SIZE 20
+
+void rand_str(char *dest, size_t length) {
+    char charset[] = "0123456789"
+                     "abcdefghijklmnopqrstuvwxyz"
+                     "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+    while (length-- > 0) {
+        size_t index = (double) rand() / RAND_MAX * (sizeof charset - 1);
+        *dest++ = charset[index];
+    }
+    *dest = '\0';
+}
+
 int main(int argc, char **argv) {
     if (argc != 2) {
         error(1, 0, "usage: unixdataclient <local_path>");
@@ -19,7 +33,11 @@ int main(int argc, char **argv) {
 
     bzero(&client_addr, sizeof(client_addr));        /* bind an address for us */
     client_addr.sun_family = AF_LOCAL;
-    strcpy(client_addr.sun_path, tmpnam(NULL));
+    char random[FILE_SIZE];
+    char path[FILE_SIZE * 2];
+    rand_str(random, FILE_SIZE - 1);
+    snprintf(path, FILE_SIZE * 2, "/tmp/%s", random);
+    strcpy(client_addr.sun_path, path);
 
     if (bind(sockfd, (struct sockaddr *) &client_addr, sizeof(client_addr)) < 0) {
         error(1, errno, "bind failed");

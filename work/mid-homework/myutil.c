@@ -2,6 +2,21 @@
 #include <dirent.h>
 #include "lib/common.h"
 
+void rand_str(char *buf, int buflen) {
+    char charset[] = "0123456789"
+                     "abcdefghijklmnopqrstuvwxyz"
+                     "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    srand(tv.tv_usec);
+    --buflen;
+    while (buflen-- > 0) {
+        size_t index = (double) rand() / RAND_MAX * (sizeof charset - 1);
+        *buf++ = charset[index];
+    }
+    *buf = '\0';
+}
+
 void trim_space(char *orig) {
     char *ptr = orig;
     while (*orig) {
