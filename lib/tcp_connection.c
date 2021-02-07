@@ -1,6 +1,6 @@
 #include "tcp_connection.h"
 #include "utils.h"
-
+#include "log.h"
 
 int handle_connection_closed(struct tcp_connection *tcpConnection) {
     struct event_loop *eventLoop = tcpConnection->eventLoop;
@@ -15,7 +15,7 @@ int handle_read(void *data) {
     struct tcp_connection *tcpConnection = (struct tcp_connection *) data;
     struct buffer *input_buffer = tcpConnection->input_buffer;
     struct channel *channel = tcpConnection->channel;
-
+    yolanda_debugx("read thread: %s, tid: %ld\n", tcpConnection->eventLoop->thread_name, pthread_self());
     if (buffer_socket_read(input_buffer, channel->fd) > 0) {
         //应用程序真正读取Buffer里的数据
         if (tcpConnection->messageCallBack != NULL) {
@@ -32,6 +32,7 @@ int handle_write(void *data) {
     struct tcp_connection *tcpConnection = (struct tcp_connection *) data;
     struct event_loop *eventLoop = tcpConnection->eventLoop;
     assertInSameThread(eventLoop);
+    yolanda_debugx("write thread: %s, tid: %ld\n", tcpConnection->eventLoop->thread_name, pthread_self());
 
     struct buffer *output_buffer = tcpConnection->output_buffer;
     struct channel *channel = tcpConnection->channel;

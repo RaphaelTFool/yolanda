@@ -175,6 +175,7 @@ int handle_connection_established(void *data) {
                                                               tcpServer->connectionClosedCallBack,
                                                               tcpServer->messageCallBack,
                                                               tcpServer->writeCompletedCallBack);
+    yolanda_debugx("accept thread: %s, tid: %ld\n", eventLoop->thread_name, pthread_self());
     //for callback use
     if (tcpServer->data != NULL) {
         tcpConnection->data = tcpServer->data;

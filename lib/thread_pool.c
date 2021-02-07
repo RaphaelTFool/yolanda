@@ -47,6 +47,7 @@ struct event_loop *thread_pool_get_loop(struct thread_pool *threadPool) {
     struct event_loop *selected = threadPool->mainLoop;
 
     //从线程池中按照顺序挑选出一个线程
+    //round-robin 轮询
     if (threadPool->thread_number > 0) {
         selected = threadPool->eventLoopThreads[threadPool->position].eventLoop;
         if (++threadPool->position >= threadPool->thread_number) {
